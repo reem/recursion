@@ -18,23 +18,39 @@ function stringifyObject(obj) { // Part of a mutually recursive pair.
 }
 
 // but you don't so you're going to have to write it from scratch:
-function stringifyJSON(obj) {
-    switch (typeof obj) {
-        case "object":
-            if (Array.isArray(obj)) {
-                return "[" + obj.map(stringifyJSON).join(',') + "]";
-            } if (obj === null) {
-                return "null";
-            } return stringifyObject(obj);
-        case "boolean":
-            if (obj) {
-                return "true";
-            } return "false"; // No need for break
-        case "number":
-            return obj.toString();
-        case "string":
-            return '"' + obj + '"';
-        default:
-            return "";
-    }
-}
+var stringifyJSON = function (obj) {
+  switch (typeof obj) {
+    case "object":
+      if (Array.isArray(obj)) {
+        return "[" + obj.map(stringifyJSON).join(',') + "]";
+      } if (obj === null) {
+        return "null";
+      } if (Object.keys(obj).length === 0) {
+        return "{}";
+      } return stringifyObject(obj);
+    case "boolean":
+      if (obj) {
+        return "true";
+      } return "false"; // No need for break
+    case "number":
+      return obj.toString();
+    case "string":
+      return '"' + obj + '"';
+    default:
+      return "";
+  }
+};
+
+var isStringifiable = function (obj) {
+  return _.contains(["object", "boolean", "number", "string"], typeof obj);
+};
+
+var stringifyObject = function (obj) {
+  return '{' + _.chain(obj).pairs()
+    .filter(function (pair) {
+      return isStringifiable(pair[1])
+    })
+    .map(function (pair) {
+      return stringifyJSON(pair[0]) + ':' + stringifyJSON(pair[1]);
+    }).value().join(',') + '}';
+};
